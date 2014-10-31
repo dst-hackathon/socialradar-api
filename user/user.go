@@ -19,6 +19,7 @@ func Init(router *mux.Router) {
 	router.Methods("POST").Path("/users/{id}/answer").HandlerFunc(saveUserAnswer)
 	router.Methods("POST").Path("/users/{id}/avatar").HandlerFunc(postAvatar)
 	router.Methods("GET").Path("/users/{id}/avatar").HandlerFunc(getAvatar)
+	router.Methods("GET").Path("/users/{id}/friendsuggestions").HandlerFunc(suggestFriends)
 }
 
 /*
@@ -164,4 +165,37 @@ func getAvatar(w http.ResponseWriter, req *http.Request) {
 			render.Data(w, http.StatusBadRequest, nil)
 		}
 	}
+}
+
+func suggestFriends(w http.ResponseWriter, req *http.Request) {
+	render := context.Get(req, "render").(*render.Render)
+	db := context.Get(req, "db").(*sql.DB)
+	var user_id string = mux.Vars(req)["id"]
+	rows, err := db.Query(
+		`SELECT friend.id, count(fuo) as weight 
+		FROM USERS friend 
+		INNER JOIN USERS_OPTIONS fuo ON fuo.user_id = friend.id 
+		WHERE friend.id <> $1 
+		AND EXISTS 
+		(select 'Y' from USERS_OPTIONS cuo 
+		WHERE cuo.option_id = fuo.option_id 
+		AND cuo.user_id = $2) 
+		GROUP BY friend.id 
+		ORDER BY weight DESC;`, user_id, user_id)
+
+	if err != nil {
+		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	} else {
+		defer rows.Close()
+
+		var id, weight string
+		suggestions := make([]map[string]string, 0)
+		for rows.Next() {
+			rows.Scan(&id, &weight)
+			suggestions = append(suggestions, map[string]string{"id": id, "weight": weight})
+		}
+
+		render.JSON(w, http.StatusOK, suggestions)
+	}
+
 }
