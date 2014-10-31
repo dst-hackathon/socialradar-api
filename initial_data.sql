@@ -1,5 +1,5 @@
-INSERT INTO questions(text, display_order) values ('What are your favorite menus?', 1);
-INSERT INTO questions(text, display_order) values ('What sports do you play?', 2);
+INSERT INTO questions(text, tag, display_order) values ('What are your favorite menus?', 'food', 1);
+INSERT INTO questions(text, tag, display_order) values ('What sports do you play?', 'sport', 2);
 
 INSERT INTO categories (text, question_id, display_order) values ('Thai', 1, 1);
 INSERT INTO categories (text, question_id, display_order) values ('Japanese', 1, 2);
