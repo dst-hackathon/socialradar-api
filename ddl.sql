@@ -18,8 +18,9 @@ CREATE TABLE users (
 );
 
 CREATE TABLE questions (
-	id 		serial PRIMARY KEY,
-	text	varchar(256),
+	id 				serial PRIMARY KEY,
+	text			varchar(256),
+	tag				varchar(256),
 	display_order	integer DEFAULT 0
 );
 
