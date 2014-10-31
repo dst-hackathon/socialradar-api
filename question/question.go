@@ -9,10 +9,10 @@ import (
 )
 
 func Init(router *mux.Router) {
-	router.Methods("GET").Path("/question").HandlerFunc(listQuestion)
+	router.Methods("GET").Path("/questions").HandlerFunc(listQuestions)
 }
 
-func listQuestion(w http.ResponseWriter, req *http.Request) {
+func listQuestions(w http.ResponseWriter, req *http.Request) {
 	render := context.Get(req, "render").(*render.Render)
 	db := context.Get(req, "db").(*sql.DB)
 
