@@ -25,7 +25,9 @@ func main() {
 
 	n := negroni.Classic()
 	n.Use(negroni.HandlerFunc(RenderIntializer))
+	n.Use(negroni.HandlerFunc(ConfigInitializer))
 	n.Use(negroni.HandlerFunc(DbInitializer))
+
 	n.UseHandler(router)
 	n.Run(":3000")
 }
@@ -36,6 +38,11 @@ func RenderIntializer(rw http.ResponseWriter, r *http.Request, next http.Handler
 	})
 	context.Set(r, "render", render)
 
+	next(rw, r)
+}
+
+func ConfigInitializer(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	context.Set(r, "config", config)
 	next(rw, r)
 }
 

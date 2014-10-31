@@ -12,6 +12,7 @@ type Configuration struct {
 	DbPort		string
 	DbUser		string
 	DbPassword	string
+	AvatarPath 	string
 }
 
 func ReadFile() Configuration {

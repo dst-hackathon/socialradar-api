@@ -2,5 +2,7 @@
 	"DbHost": "localhost",
 	"DbPort": "5432",
 	"DbUser": "postgres",
-	"DbPassword": "root"
+	"DbPassword": "root",
+
+	"AvatarPath": "./uploaded/"
 }
