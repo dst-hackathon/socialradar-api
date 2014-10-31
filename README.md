@@ -14,11 +14,13 @@ Response:
   {
     "id": "1",
     "order": "1",
+    "tag": "food",
     "text": "What are your favorite menus?"
   },
   {
     "id": "2",
     "order": "2",
+    "tag": "sport",
     "text": "What sports do you play?"
   }
 ]

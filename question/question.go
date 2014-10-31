@@ -24,17 +24,17 @@ func listQuestions(w http.ResponseWriter, req *http.Request) {
 	render := context.Get(req, "render").(*render.Render)
 	db := context.Get(req, "db").(*sql.DB)
 
-	rows, err := db.Query("SELECT id, text, display_order FROM questions")
+	rows, err := db.Query("SELECT id, text, tag, display_order FROM questions")
 	if err != nil {
 		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	} else {
 		defer rows.Close()
 
-		var id, text, order string
+		var id, text, order, tag string
 		questions := make([]map[string]string, 0)
 		for rows.Next() {
-			rows.Scan(&id, &text, &order)
-			questions = append(questions, map[string]string{"id": id, "text": text, "order": order})
+			rows.Scan(&id, &text, &tag, &order)
+			questions = append(questions, map[string]string{"id": id, "text": text, "tag": tag, "order": order})
 		}
 
 		render.JSON(w, http.StatusOK, questions)
