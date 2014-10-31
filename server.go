@@ -36,7 +36,7 @@ func RenderIntializer(rw http.ResponseWriter, r *http.Request, next http.Handler
 }
 
 func DbInitializer(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	db, err := sql.Open("postgres", "postgres://postgres:root@localhost:5432/socialradar_development?sslmode=disable")
+	db, err := sql.Open("postgres", "postgres://postgres:63Bangkok@localhost:5432/socialradar_development?sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 		http.Error(rw, err.Error(), 500)
