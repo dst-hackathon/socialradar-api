@@ -18,6 +18,7 @@ import (
 func Init(router *mux.Router) {
 	router.Methods("POST").Path("/users/{id}/answer").HandlerFunc(saveUserAnswer)
 	router.Methods("POST").Path("/users/{id}/avatar").HandlerFunc(postAvatar)
+	router.Methods("GET").Path("/users/{id}/avatar").HandlerFunc(getAvatar)
 }
 
 /*
@@ -136,4 +137,31 @@ func postAvatar(w http.ResponseWriter, req *http.Request) {
 
 	result := PostAvatarResult{Status: "Success", Filename: originalFilename}
 	render.JSON(w, http.StatusOK, result)
+}
+
+func getAvatar(w http.ResponseWriter, req *http.Request) {
+	userId := mux.Vars(req)["id"]
+	config := context.Get(req, "config").(configuration.Configuration)
+	db := context.Get(req, "db").(*sql.DB)
+	render := context.Get(req, "render").(*render.Render)
+
+	rows, err := db.Query("SELECT avatar_path FROM users WHERE id = $1", userId)
+	if err != nil {
+		render.Data(w, http.StatusBadRequest, nil)
+	} else {
+		defer rows.Close()
+
+		var avatar_path sql.NullString
+
+		for rows.Next() {
+			rows.Scan(&avatar_path)
+		}
+
+		if avatar_path.Valid {
+			filepath := config.AvatarPath + avatar_path.String
+			http.ServeFile(w, req, filepath)
+		} else {
+			render.Data(w, http.StatusBadRequest, nil)
+		}
+	}
 }
