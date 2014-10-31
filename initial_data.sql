@@ -23,7 +23,7 @@ INSERT INTO options (text, category_id, display_order) values ('Football', 5, 1)
 INSERT INTO options (text, category_id, display_order) values ('Basketball', 5, 2);
 INSERT INTO options (text, category_id, display_order) values ('Bowling', 5, 3);
 
-INSERT INTO users(email) values ('pongsanti.tanvejsilp@gmail.com')
+INSERT INTO users(email) values ('pongsanti.tanvejsilp@gmail.com');
 INSERT INTO users(email) values ('prawit@gmail.com');
 INSERT INTO users(email) values ('prakit@gmail.com');
 INSERT INTO users(email) values ('opas@gmail.com');
