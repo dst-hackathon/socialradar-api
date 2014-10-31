@@ -26,7 +26,7 @@ Response:
 ]
 ```
 
-GET /question/{id}
+GET /questions/{id}
 ------------------
 Response:
 ```javascript
@@ -106,7 +106,7 @@ Response:
 ]
 ```
 
-POST /user/{id}/answer
+POST /users/{id}/answer
 ----------------------
 Request: 
 ```javascript
@@ -128,6 +128,25 @@ Response:
 }
 ```
 
-GET /user/{id}/answer
+GET /users/{id}/answer
 ---------------------
+
+POST /users/{id}/avatar
+-----------------------
+Request:
+Multipart form
+file : <file>
+
+Response:
+```javascript
+{
+    "Status": "Success",
+    "Filename": "22.png"
+}
+```
+
+GET /users{id}/avatar
+---------------------
+Response:
+Raw image
 
