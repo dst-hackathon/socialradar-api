@@ -7,6 +7,7 @@ Current API
 ===========
 
 GET /questions
+--------------
 Response:
 ```javascript
 [
@@ -24,6 +25,7 @@ Response:
 ```
 
 GET /question/{id}
+------------------
 Response:
 ```javascript
 [
@@ -103,6 +105,7 @@ Response:
 ```
 
 POST /user/{id}/answer
+----------------------
 Request: 
 ```javascript
 {
@@ -124,4 +127,5 @@ Response:
 ```
 
 GET /user/{id}/answer
+---------------------
 
