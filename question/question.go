@@ -46,13 +46,14 @@ func listQuestionsId(w http.ResponseWriter, req *http.Request) {
 	db := context.Get(req, "db").(*sql.DB)
 	id := mux.Vars(req)["id"]
 
-	rows, err := db.Query("SELECT c.id, c.text, c.display_order, o.id, o.text, o.display_order FROM categories c LEFT JOIN options o ON c.id = o.category_id WHERE c.question_id = " + id)
+	rows, err := db.Query("SELECT c.id, c.text, c.display_order, o.id, o.text, o.display_order FROM categories c LEFT JOIN options o ON c.id = o.category_id WHERE c.question_id = " + id + "ORDER BY c.display_order, o.display_order")
 	if err != nil {
 		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	} else {
 		defer rows.Close()
 
-		var cid, ctext, corder, oid, otext, oorder, pid string
+		var cid, ctext, corder, pid string
+		var oid, otext, oorder sql.NullString
 		categories := make([]Category, 0)
 		options := make([]map[string]string, 0)
 
@@ -66,7 +67,10 @@ func listQuestionsId(w http.ResponseWriter, req *http.Request) {
 				categories = categories[:len(categories)-1]
 			}
 
-			options = append(options, map[string]string{"id": oid, "text": otext, "order": oorder})
+			if oid.Valid {
+				options = append(options, map[string]string{"id": oid.String, "text": otext.String, "order": oorder.String})
+			}
+
 			categories = append(categories, Category{cid, ctext, corder, options})
 		}
 
