@@ -24,7 +24,7 @@ func listQuestions(w http.ResponseWriter, req *http.Request) {
 	render := context.Get(req, "render").(*render.Render)
 	db := context.Get(req, "db").(*sql.DB)
 
-	rows, err := db.Query("SELECT * FROM questions")
+	rows, err := db.Query("SELECT id, text, display_order FROM questions")
 	if err != nil {
 		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	} else {

@@ -5,13 +5,17 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/dst-hackathon/socialradar-api/question"
 	"github.com/dst-hackathon/socialradar-api/user"
+	"github.com/dst-hackathon/socialradar-api/configuration"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"gopkg.in/unrolled/render.v1"
 	"log"
 	"net/http"
+	"fmt"
 )
+
+var config configuration.Configuration = configuration.ReadFile();
 
 func main() {
 	router := mux.NewRouter().StrictSlash(false)
@@ -36,7 +40,8 @@ func RenderIntializer(rw http.ResponseWriter, r *http.Request, next http.Handler
 }
 
 func DbInitializer(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-	db, err := sql.Open("postgres", "postgres://postgres:root@172.22.1.47:5432/socialradar_development?sslmode=disable")
+	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/socialradar_development?sslmode=disable", config.DbUser, config.DbPassword, config.DbHost, config.DbPort)
+	db, err := sql.Open("postgres", dbUrl)
 	if err != nil {
 		log.Fatal(err)
 		http.Error(rw, err.Error(), 500)
