@@ -8,11 +8,19 @@ import (
 	"net/http"
 )
 
-func Init(router *mux.Router) {
-	router.Methods("GET").Path("/question").HandlerFunc(listQuestion)
+type Category struct {
+	Id      string              `json:"id"`
+	Text    string              `json:"text"`
+	Order   string              `json:"order"`
+	Options []map[string]string `json:"options"`
 }
 
-func listQuestion(w http.ResponseWriter, req *http.Request) {
+func Init(router *mux.Router) {
+	router.Methods("GET").Path("/questions").HandlerFunc(listQuestions)
+	router.Methods("GET").Path("/questions/{id}").HandlerFunc(listQuestionsId)
+}
+
+func listQuestions(w http.ResponseWriter, req *http.Request) {
 	render := context.Get(req, "render").(*render.Render)
 	db := context.Get(req, "db").(*sql.DB)
 
@@ -31,5 +39,37 @@ func listQuestion(w http.ResponseWriter, req *http.Request) {
 
 		render.JSON(w, http.StatusOK, questions)
 	}
+}
 
+func listQuestionsId(w http.ResponseWriter, req *http.Request) {
+	render := context.Get(req, "render").(*render.Render)
+	db := context.Get(req, "db").(*sql.DB)
+	id := mux.Vars(req)["id"]
+
+	rows, err := db.Query("SELECT c.id, c.text, c.display_order, o.id, o.text, o.display_order FROM categories c LEFT JOIN options o ON c.id = o.category_id WHERE c.question_id = " + id)
+	if err != nil {
+		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	} else {
+		defer rows.Close()
+
+		var cid, ctext, corder, oid, otext, oorder, pid string
+		categories := make([]Category, 0)
+		options := make([]map[string]string, 0)
+
+		for rows.Next() {
+			rows.Scan(&cid, &ctext, &corder, &oid, &otext, &oorder)
+
+			if cid != pid {
+				options = make([]map[string]string, 0)
+				pid = cid
+			} else {
+				categories = categories[:len(categories)-1]
+			}
+
+			options = append(options, map[string]string{"id": oid, "text": otext, "order": oorder})
+			categories = append(categories, Category{cid, ctext, corder, options})
+		}
+
+		render.JSON(w, http.StatusOK, categories)
+	}
 }
