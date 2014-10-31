@@ -1,0 +1,6 @@
+{
+	"DbHost": "localhost",
+	"DbPort": "5432",
+	"DbUser": "postgres",
+	"DbPassword": "root"
+}
