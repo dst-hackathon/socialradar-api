@@ -1,0 +1,5 @@
+GET /question
+GET /question/{id}
+
+POST /user/{id}/answer
+GET /user/{id}/answer
