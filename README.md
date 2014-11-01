@@ -180,9 +180,11 @@ email: "user@email.com"
 password: "23x03dkc$"
 
 Response:
+```javascript
 {
     "success": ""
 }
+```
 
 GET /users/{id}/friendsuggestions
 ---------------------
