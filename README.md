@@ -177,3 +177,30 @@ Response:
     "success": ""
 }
 
+GET /users/{id}/friendsuggestions
+---------------------
+Response:
+```javascript
+[
+  {
+    "email": "mail4@gmail.com",
+    "id": "4",
+    "weight": "6"
+  },
+  {
+    "email": "mail1@gmail.com",
+    "id": "1",
+    "weight": "3"
+  },
+  {
+    "email": "mail2@gmail.com",
+    "id": "2",
+    "weight": "1"
+  },
+  {
+    "email": "mail3@gmail.com",
+    "id": "3",
+    "weight": "1"
+  }
+]
+```
