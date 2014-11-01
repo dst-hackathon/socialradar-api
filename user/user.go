@@ -3,15 +3,16 @@ package user
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"github.com/dst-hackathon/socialradar-api/configuration"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
-	"github.com/dst-hackathon/socialradar-api/configuration"
 	"gopkg.in/unrolled/render.v1"
+	"io"
 	"log"
 	"net/http"
-	"fmt"
 	"os"
-	"io"
+	"strconv"
 	"strings"
 	"strconv"
 	"sort"
@@ -19,6 +20,7 @@ import (
 
 func Init(router *mux.Router) {
 	router.Methods("POST").Path("/users/{id}/answer").HandlerFunc(saveUserAnswer)
+	router.Methods("GET").Path("/users/{id}/answer").HandlerFunc(getUserAnswer)
 	router.Methods("POST").Path("/users/{id}/avatar").HandlerFunc(postAvatar)
 	router.Methods("GET").Path("/users/{id}/avatar").HandlerFunc(getAvatar)
 	router.Methods("GET").Path("/users/{id}/friendsuggestions").HandlerFunc(suggestFriends)
@@ -84,9 +86,71 @@ func saveUserAnswer(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func getUserAnswer(w http.ResponseWriter, req *http.Request) {
+	render := context.Get(req, "render").(*render.Render)
+	db := context.Get(req, "db").(*sql.DB)
+	userId := mux.Vars(req)["id"]
+
+	rows, err := db.Query(`
+		SELECT c.question_id, uc.category_id, uo.option_id
+		FROM users_categories uc
+		JOIN categories c ON uc.category_id = c.id
+		LEFT OUTER JOIN users_options uo ON uo.user_id = $1 AND uo.option_id IN (
+				select o.id FROM options o
+				WHERE o.category_id = uc.category_id
+			)
+		WHERE uc.user_id = $1
+		ORDER BY c.question_id, uc.category_id, uo.option_id
+		`, userId)
+
+	if err != nil {
+		log.Fatal(err)
+		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	} else {
+		defer rows.Close()
+
+		result := make(map[string]map[string][]int)
+
+		var qidNS, cidNS, oidNS sql.NullString
+		var qid, cid, oid string
+		for rows.Next() {
+			rows.Scan(&qidNS, &cidNS, &oidNS)
+
+			if qidNS.Valid {
+				qid = qidNS.String
+			}
+
+			if cidNS.Valid {
+				cid = cidNS.String
+			}
+
+			if oidNS.Valid {
+				oid = oidNS.String
+			} else {
+				oid = ""
+			}
+
+			if result[qid] == nil {
+				result[qid] = make(map[string][]int)
+			}
+
+			if result[qid][cid] == nil {
+				result[qid][cid] = make([]int, 0)
+			}
+
+			if oid != "" {
+				oidInt, _ := strconv.Atoi(oid)
+				result[qid][cid] = append(result[qid][cid], oidInt)
+			}
+		}
+
+		render.JSON(w, http.StatusOK, result)
+	}
+}
+
 type PostAvatarResult struct {
-	Status 		string
-	Filename 	string
+	Status   string
+	Filename string
 }
 
 func postAvatar(w http.ResponseWriter, req *http.Request) {
@@ -103,7 +167,7 @@ func postAvatar(w http.ResponseWriter, req *http.Request) {
 
 	originalFilename := header.Filename
 	filenameSplits := strings.Split(originalFilename, ".")
-	fileExtension := filenameSplits[len(filenameSplits) - 1]
+	fileExtension := filenameSplits[len(filenameSplits)-1]
 	savedFilename := userId + "." + fileExtension
 
 	config := context.Get(req, "config").(configuration.Configuration)

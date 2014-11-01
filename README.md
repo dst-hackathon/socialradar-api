@@ -130,6 +130,18 @@ Response:
 
 GET /users/{id}/answer
 ---------------------
+Response: 
+```javascript
+{
+  "1": {  // Question ID
+    "1": [1, 2],  // "Selected Category": [Selected Option ID, ....]
+    "2": []
+  },
+  "2": {
+    "5": [10]
+  }
+}
+```
 
 POST /users/{id}/avatar
 -----------------------
