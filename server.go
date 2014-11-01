@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/codegangsta/negroni"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/dst-hackathon/socialradar-api/configuration"
 	"github.com/dst-hackathon/socialradar-api/login"
 	"github.com/dst-hackathon/socialradar-api/question"
@@ -16,9 +17,13 @@ import (
 	"gopkg.in/unrolled/render.v1"
 	"log"
 	"net/http"
+	"strings"
 )
+var config configuration.Configuration = configuration.ReadFile()
+
 
 var config configuration.Configuration = configuration.ReadFile()
+var signKey interface{} = []byte{1, 1, 1, 1, 1, 1, 1}
 
 func main() {
 	router := mux.NewRouter().StrictSlash(false)
@@ -37,7 +42,7 @@ func main() {
 	n.Use(negroni.HandlerFunc(ConfigInitializer))
 	n.Use(negroni.HandlerFunc(DbInitializer))
 	n.Use(c)
-
+	n.Use(negroni.HandlerFunc(SecurityInitializer))
 	n.UseHandler(router)
 	n.Run(":3000")
 }
@@ -61,7 +66,7 @@ func DbInitializer(rw http.ResponseWriter, r *http.Request, next http.HandlerFun
 	db, err := sql.Open("postgres", dbUrl)
 	if err != nil {
 		log.Fatal(err)
-		http.Error(rw, err.Error(), 500)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -69,4 +74,32 @@ func DbInitializer(rw http.ResponseWriter, r *http.Request, next http.HandlerFun
 	next(rw, r)
 
 	db.Close()
+}
+
+func SecurityInitializer(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	var tokenString string
+	uri := r.RequestURI
+	log.Printf("Security checking for : " + uri)
+	if strings.HasPrefix(uri, "/login") ||
+		strings.HasPrefix(uri, "/signup") {
+		next(rw, r)
+		return
+	}
+	tokenString = r.Header.Get("token") //r.FormValue("token")
+	log.Printf("Token provide:" + tokenString)
+	if tokenString != "" {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			var signKey []byte = []byte(config.ApiSignKey);
+			return signKey, nil
+		})
+		if err == nil && token.Valid {
+			log.Printf("decode token.Claims[id] = " + token.Claims["id"].(string))
+			context.Set(r, "user_id", token.Claims["id"])
+		} else {
+			log.Printf("Error")
+			http.Error(rw, err.Error(), http.StatusUnauthorized)
+			return
+		}
+	}
+	next(rw, r)
 }

@@ -4,5 +4,6 @@
 	"DbUser": "postgres",
 	"DbPassword": "root",
 
-	"AvatarPath": "./uploaded/"
+	"AvatarPath": "./uploaded/",
+	"ApiSignKey" : "123456"
 }

@@ -25,6 +25,8 @@ func Init(router *mux.Router) {
 	router.Methods("GET").Path("/users/{id}/friendsuggestions").HandlerFunc(suggestFriends)
 }
 
+const validateUserIdFromToken = false
+
 /*
 Example request is:
 
@@ -43,6 +45,13 @@ func saveUserAnswer(w http.ResponseWriter, req *http.Request) {
 	db := context.Get(req, "db").(*sql.DB)
 	decoder := json.NewDecoder(req.Body)
 	userId := mux.Vars(req)["id"]
+
+	// Check if the current user is trying to ask other user data
+	if validateUserIdFromToken && context.Get(req, "user_id") != userId {
+		//render.JSON(w, http.StatusUnauthorized, map[string]string{"error": "Hacking token!"})
+		http.Error(w, "Hacking token!", http.StatusUnauthorized)
+		return
+	}
 
 	var data map[string]map[string][]int
 	err := decoder.Decode(&data)
@@ -112,6 +121,13 @@ func getUserAnswer(w http.ResponseWriter, req *http.Request) {
 	render := context.Get(req, "render").(*render.Render)
 	db := context.Get(req, "db").(*sql.DB)
 	userId := mux.Vars(req)["id"]
+
+	// Check if the current user is trying to ask other user data
+	if validateUserIdFromToken && context.Get(req, "user_id") != userId {
+		//render.JSON(w, http.StatusUnauthorized, map[string]string{"error": "Hacking token!"})
+		http.Error(w, "Hacking token!", http.StatusUnauthorized)
+		return
+	}
 
 	rows, err := db.Query(`
 		SELECT c.question_id, uc.category_id, uo.option_id
@@ -259,6 +275,13 @@ func suggestFriends(w http.ResponseWriter, req *http.Request) {
 	db := context.Get(req, "db").(*sql.DB)
 	render := context.Get(req, "render").(*render.Render)
 	var user_id string = mux.Vars(req)["id"]
+
+	// Check if the current user is trying to ask other user data
+	if validateUserIdFromToken && context.Get(req, "user_id") != user_id {
+		//render.JSON(w, http.StatusUnauthorized, map[string]string{"error": "Hacking token!"})
+		http.Error(w, "Hacking token!", http.StatusUnauthorized)
+		return
+	}
 
 	resultByOptions, err := calculateByUserOptions(db, user_id)
 	if err != nil {

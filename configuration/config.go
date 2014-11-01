@@ -13,6 +13,7 @@ type Configuration struct {
 	DbUser		string
 	DbPassword	string
 	AvatarPath 	string
+	ApiSignKey  string
 }
 
 func ReadFile() Configuration {

@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"gopkg.in/unrolled/render.v1"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/dst-hackathon/socialradar-api/configuration"
 	"net/http"
 	"encoding/json"
 )
@@ -25,7 +26,11 @@ func Init(router *mux.Router) {
 func loginHandler(w http.ResponseWriter, req *http.Request) {
 	render := context.Get(req, "render").(*render.Render)
 	db := context.Get(req, "db").(*sql.DB)
-
+	config := context.Get(req, "config").(configuration.Configuration)
+	
+	// Keep Sign Key
+	signKey = []byte(config.ApiSignKey)
+	
     inputInfo := parseRequestBody(req)
 	if inputInfo.Email == "" || inputInfo.Password == "" {
 		render.JSON(w, http.StatusBadRequest, map[string]string{"error": "Please enter email and password"})
