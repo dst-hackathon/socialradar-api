@@ -3,6 +3,10 @@ socialradar-api
 
 Social Radar API
 
+Note: The API consumer need to provide the security token in HTTP request header (except the signup and logon API).
+
+The request HTTP header name is "token". Consumer will get token when they successfully called logon API.
+
 Current API
 ===========
 
