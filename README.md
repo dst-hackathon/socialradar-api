@@ -136,12 +136,24 @@ Response:
 
 GET /users/{id}/answer
 ---------------------
+Response: 
+```javascript
+{
+  "1": {  // Question ID
+    "1": [1, 2],  // "Selected Category": [Selected Option ID, ....]
+    "2": []
+  },
+  "2": {
+    "5": [10]
+  }
+}
+```
 
 POST /users/{id}/avatar
 -----------------------
 Request:
 Multipart form
-file : <file>
+form data key name = file
 
 Response:
 ```javascript
@@ -151,8 +163,50 @@ Response:
 }
 ```
 
-GET /users{id}/avatar
+GET /users/{id}/avatar
 ---------------------
 Response:
 Raw image
 
+POST /signup
+---------------------
+Request:
+```javascript
+{
+  "email": "test@email.com",
+  "password": "kieCkd9$"
+}
+```
+
+Response:
+{
+    "success": ""
+}
+
+GET /users/{id}/friendsuggestions
+---------------------
+Response:
+```javascript
+[
+  {
+    "email": "mail4@gmail.com",
+    "id": "4",
+    "weight": "6"
+  },
+  {
+    "email": "mail1@gmail.com",
+    "id": "1",
+    "weight": "3"
+  },
+  {
+    "email": "mail2@gmail.com",
+    "id": "2",
+    "weight": "1"
+  },
+  {
+    "email": "mail3@gmail.com",
+    "id": "3",
+    "weight": "1"
+  }
+]
+```

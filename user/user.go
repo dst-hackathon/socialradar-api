@@ -3,20 +3,24 @@ package user
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"github.com/dst-hackathon/socialradar-api/configuration"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
-	"github.com/dst-hackathon/socialradar-api/configuration"
 	"gopkg.in/unrolled/render.v1"
+	"io"
 	"log"
 	"net/http"
-	"fmt"
 	"os"
-	"io"
+	"strconv"
 	"strings"
+	"strconv"
+	"sort"
 )
 
 func Init(router *mux.Router) {
 	router.Methods("POST").Path("/users/{id}/answer").HandlerFunc(saveUserAnswer)
+	router.Methods("GET").Path("/users/{id}/answer").HandlerFunc(getUserAnswer)
 	router.Methods("POST").Path("/users/{id}/avatar").HandlerFunc(postAvatar)
 	router.Methods("GET").Path("/users/{id}/avatar").HandlerFunc(getAvatar)
 	router.Methods("GET").Path("/users/{id}/friendsuggestions").HandlerFunc(suggestFriends)
@@ -82,9 +86,71 @@ func saveUserAnswer(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func getUserAnswer(w http.ResponseWriter, req *http.Request) {
+	render := context.Get(req, "render").(*render.Render)
+	db := context.Get(req, "db").(*sql.DB)
+	userId := mux.Vars(req)["id"]
+
+	rows, err := db.Query(`
+		SELECT c.question_id, uc.category_id, uo.option_id
+		FROM users_categories uc
+		JOIN categories c ON uc.category_id = c.id
+		LEFT OUTER JOIN users_options uo ON uo.user_id = $1 AND uo.option_id IN (
+				select o.id FROM options o
+				WHERE o.category_id = uc.category_id
+			)
+		WHERE uc.user_id = $1
+		ORDER BY c.question_id, uc.category_id, uo.option_id
+		`, userId)
+
+	if err != nil {
+		log.Fatal(err)
+		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	} else {
+		defer rows.Close()
+
+		result := make(map[string]map[string][]int)
+
+		var qidNS, cidNS, oidNS sql.NullString
+		var qid, cid, oid string
+		for rows.Next() {
+			rows.Scan(&qidNS, &cidNS, &oidNS)
+
+			if qidNS.Valid {
+				qid = qidNS.String
+			}
+
+			if cidNS.Valid {
+				cid = cidNS.String
+			}
+
+			if oidNS.Valid {
+				oid = oidNS.String
+			} else {
+				oid = ""
+			}
+
+			if result[qid] == nil {
+				result[qid] = make(map[string][]int)
+			}
+
+			if result[qid][cid] == nil {
+				result[qid][cid] = make([]int, 0)
+			}
+
+			if oid != "" {
+				oidInt, _ := strconv.Atoi(oid)
+				result[qid][cid] = append(result[qid][cid], oidInt)
+			}
+		}
+
+		render.JSON(w, http.StatusOK, result)
+	}
+}
+
 type PostAvatarResult struct {
-	Status 		string
-	Filename 	string
+	Status   string
+	Filename string
 }
 
 func postAvatar(w http.ResponseWriter, req *http.Request) {
@@ -101,7 +167,7 @@ func postAvatar(w http.ResponseWriter, req *http.Request) {
 
 	originalFilename := header.Filename
 	filenameSplits := strings.Split(originalFilename, ".")
-	fileExtension := filenameSplits[len(filenameSplits) - 1]
+	fileExtension := filenameSplits[len(filenameSplits)-1]
 	savedFilename := userId + "." + fileExtension
 
 	config := context.Get(req, "config").(configuration.Configuration)
@@ -168,11 +234,97 @@ func getAvatar(w http.ResponseWriter, req *http.Request) {
 }
 
 func suggestFriends(w http.ResponseWriter, req *http.Request) {
-	render := context.Get(req, "render").(*render.Render)
 	db := context.Get(req, "db").(*sql.DB)
+	render := context.Get(req, "render").(*render.Render)
 	var user_id string = mux.Vars(req)["id"]
+	
+	resultByOptions, err := calculateByUserOptions(db, user_id)
+	if err != nil {
+		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	resultByCategories, err := calculateByUserCategories(db, user_id)
+	if err != nil {
+		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	mergeResult := groupResult(resultByOptions, resultByCategories)
+	response := make([]map[string]string, 0)
+	for _, f := range mergeResult {
+		response = append(response, map[string]string{"id":f.id, "weight":strconv.Itoa(f.weight), "email":f.email})
+	}
+	
+	render.JSON(w, http.StatusOK, response)
+}
+
+type frientList []friend
+type friend struct {
+	id string
+	weight int
+	email string
+}
+func (s frientList) Len() int { return len(s) }
+func (s frientList) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s frientList) Less(i, j int) bool { 
+	return s[i].weight < s[j].weight
+}
+
+func groupResult(resultByOptions []friend, resultByCategories []friend) []friend {
+	result := map[string]friend{}
+	for _, f := range resultByOptions {
+		result[f.id] = f
+	}
+	for _, f := range resultByCategories {
+		if result[f.id].id != f.id {
+			result[f.id] = f
+		} else {
+			oldF := result[f.id]
+			oldF.weight += f.weight
+			result[f.id] = oldF
+		}
+	}
+
+	sortResult := make([]friend, 0)
+	for _, f := range result {
+		sortResult = append(sortResult, f)
+	}
+	sort.Sort(sort.Reverse(frientList(sortResult)))
+	return sortResult
+}
+
+func calculateByUserCategories(db *sql.DB, user_id string) ([]friend, error) {
 	rows, err := db.Query(
-		`SELECT friend.id, count(fuo) as weight 
+		`SELECT friend.id, count(fuo) as weight, friend.email 
+		FROM USERS friend 
+		INNER JOIN USERS_CATEGORIES fuo ON fuo.user_id = friend.id 
+		WHERE friend.id <> $1 
+		AND EXISTS 
+		(select 'Y' from USERS_CATEGORIES cuo 
+		WHERE cuo.category_id = fuo.category_id 
+		AND cuo.user_id = $2) 
+		GROUP BY friend.id 
+		ORDER BY weight DESC;`, user_id, user_id)
+
+	if err != nil {
+		return []friend{}, err
+	}
+	defer rows.Close()
+
+	var id, weight, email string
+	suggestions := make([]friend, 0)
+	for rows.Next() {
+		rows.Scan(&id, &weight, &email)
+		iWeight, _ := strconv.Atoi(weight)
+		suggestions = append(suggestions, friend{id: id, weight: iWeight, email: email})
+	}
+	return suggestions, nil
+}
+
+func calculateByUserOptions(db *sql.DB, user_id string) ([]friend, error) {
+	rows, err := db.Query(
+		`SELECT friend.id, count(fuo) as weight, friend.email 
 		FROM USERS friend 
 		INNER JOIN USERS_OPTIONS fuo ON fuo.user_id = friend.id 
 		WHERE friend.id <> $1 
@@ -184,18 +336,16 @@ func suggestFriends(w http.ResponseWriter, req *http.Request) {
 		ORDER BY weight DESC;`, user_id, user_id)
 
 	if err != nil {
-		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	} else {
-		defer rows.Close()
-
-		var id, weight string
-		suggestions := make([]map[string]string, 0)
-		for rows.Next() {
-			rows.Scan(&id, &weight)
-			suggestions = append(suggestions, map[string]string{"id": id, "weight": weight})
-		}
-
-		render.JSON(w, http.StatusOK, suggestions)
+		return []friend{}, err
 	}
+	defer rows.Close()
 
+	var id, weight, email string
+	suggestions := make([]friend, 0)
+	for rows.Next() {
+		rows.Scan(&id, &weight, &email)
+		iWeight, _ := strconv.Atoi(weight)
+		suggestions = append(suggestions, friend{id: id, weight: iWeight, email: email})
+	}
+	return suggestions, nil
 }
