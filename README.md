@@ -171,12 +171,10 @@ Raw image
 POST /signup
 ---------------------
 Request:
-```javascript
-{
-  "email": "test@email.com",
-  "password": "kieCkd9$"
-}
-```
+Multipart Form with folowing form data
+file: [avartar file]
+email: "user@email.com"
+password: "23x03dkc$"
 
 Response:
 {
