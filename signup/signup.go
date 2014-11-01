@@ -28,12 +28,11 @@ func signup(w http.ResponseWriter, req *http.Request) {
 	db := context.Get(req, "db").(*sql.DB)
 
 	file, _, err := req.FormFile("file")
-	defer file.Close()
-
 	if err != nil {
 		render.JSON(w, http.StatusBadRequest, map[string]string{"error": "Image file is required."})
 		return
-	} 
+	}
+	defer file.Close()
 
 	email := req.FormValue("email")
 	password := req.FormValue("password")
