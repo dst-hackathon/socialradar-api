@@ -8,6 +8,14 @@ import (
 	"net/http"
 )
 
+type Question struct {
+	Id         string     `json:"id"`
+	Text       string     `json:"text"`
+	Tag        string     `json:"tag"`
+	Order      string     `json:"order"`
+	Categories []Category `json:"categories"`
+}
+
 type Category struct {
 	Id      string              `json:"id"`
 	Text    string              `json:"text"`
@@ -30,7 +38,7 @@ func listQuestions(w http.ResponseWriter, req *http.Request) {
 	} else {
 		defer rows.Close()
 
-		var id, text, order, tag string
+		var id, text, tag, order string
 		questions := make([]map[string]string, 0)
 		for rows.Next() {
 			rows.Scan(&id, &text, &tag, &order)
@@ -45,6 +53,12 @@ func listQuestionsId(w http.ResponseWriter, req *http.Request) {
 	render := context.Get(req, "render").(*render.Render)
 	db := context.Get(req, "db").(*sql.DB)
 	id := mux.Vars(req)["id"]
+
+	question, err := getQuestionById(db, id)
+	if err != nil {
+		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
 
 	rows, err := db.Query("SELECT c.id, c.text, c.display_order, o.id, o.text, o.display_order FROM categories c LEFT JOIN options o ON c.id = o.category_id WHERE c.question_id = $1 ORDER BY c.display_order, o.display_order", id)
 	if err != nil {
@@ -74,6 +88,23 @@ func listQuestionsId(w http.ResponseWriter, req *http.Request) {
 			categories = append(categories, Category{cid, ctext, corder, options})
 		}
 
-		render.JSON(w, http.StatusOK, categories)
+		question.Categories = categories
+		render.JSON(w, http.StatusOK, question)
 	}
+}
+
+func getQuestionById(db *sql.DB, id string) (Question, error) {
+	var question Question
+	rows, err := db.Query("SELECT id, text, tag, display_order FROM questions WHERE id = $1", id)
+	if err != nil {
+		return question, err
+	} else {
+		var id, text, tag, order string
+		if rows.Next() {
+			rows.Scan(&id, &text, &tag, &order)
+			question = Question{id, text, tag, order, nil}
+		}
+	}
+
+	return question, nil
 }
