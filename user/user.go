@@ -13,6 +13,8 @@ import (
 	"os"
 	"io"
 	"strings"
+	"strconv"
+	"sort"
 )
 
 func Init(router *mux.Router) {
@@ -168,9 +170,84 @@ func getAvatar(w http.ResponseWriter, req *http.Request) {
 }
 
 func suggestFriends(w http.ResponseWriter, req *http.Request) {
-	render := context.Get(req, "render").(*render.Render)
 	db := context.Get(req, "db").(*sql.DB)
+	render := context.Get(req, "render").(*render.Render)
 	var user_id string = mux.Vars(req)["id"]
+	
+	resultByOptions, err := calculateByUserOptions(db, user_id)
+	if err != nil {
+		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	resultByCategories, err := calculateByUserCategories(db, user_id)
+	if err != nil {
+		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	mergeResult := groupResult(resultByOptions, resultByCategories)
+	render.JSON(w, http.StatusOK, mergeResult)
+}
+
+type frientList []map[string]string
+func (s frientList) Len() int { return len(s) }
+func (s frientList) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s frientList) Less(i, j int) bool { 
+	return s[i]["weight"] < s[j]["weight"] 
+}
+
+func groupResult(resultByOptions []map[string]string, resultByCategories []map[string]string) []map[string]string {
+	resultTotal := map[string]int{}
+	for _, val := range resultByOptions {
+		intVal, err := strconv.Atoi(val["weight"])
+		if err == nil {
+			resultTotal[val["id"]] = resultTotal[val["id"]] + (2 * intVal)
+		}
+	}
+	for _, val := range resultByCategories {
+		intVal, err := strconv.Atoi(val["weight"])
+		if err == nil {
+			resultTotal[val["id"]] = resultTotal[val["id"]] + intVal
+		}
+	}
+
+	result := make([]map[string]string, 0)
+	for id, _ := range resultTotal {
+		result = append(result, map[string]string{"id": id, "weight": strconv.Itoa(resultTotal[id])})
+	}
+	sort.Sort(sort.Reverse(frientList(result)))
+	return result
+}
+
+func calculateByUserCategories(db *sql.DB, user_id string) ([]map[string]string, error) {
+	rows, err := db.Query(
+		`SELECT friend.id, count(fuo) as weight 
+		FROM USERS friend 
+		INNER JOIN USERS_CATEGORIES fuo ON fuo.user_id = friend.id 
+		WHERE friend.id <> $1 
+		AND EXISTS 
+		(select 'Y' from USERS_CATEGORIES cuo 
+		WHERE cuo.category_id = fuo.category_id 
+		AND cuo.user_id = $2) 
+		GROUP BY friend.id 
+		ORDER BY weight DESC;`, user_id, user_id)
+
+	if err != nil {
+		return []map[string]string{}, err
+	}
+	defer rows.Close()
+
+	var id, weight string
+	suggestions := make([]map[string]string, 0)
+	for rows.Next() {
+		rows.Scan(&id, &weight)
+		suggestions = append(suggestions, map[string]string{"id": id, "weight": weight})
+	}
+	return suggestions, nil
+}
+
+func calculateByUserOptions(db *sql.DB, user_id string) ([]map[string]string, error) {
 	rows, err := db.Query(
 		`SELECT friend.id, count(fuo) as weight 
 		FROM USERS friend 
@@ -184,18 +261,15 @@ func suggestFriends(w http.ResponseWriter, req *http.Request) {
 		ORDER BY weight DESC;`, user_id, user_id)
 
 	if err != nil {
-		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	} else {
-		defer rows.Close()
-
-		var id, weight string
-		suggestions := make([]map[string]string, 0)
-		for rows.Next() {
-			rows.Scan(&id, &weight)
-			suggestions = append(suggestions, map[string]string{"id": id, "weight": weight})
-		}
-
-		render.JSON(w, http.StatusOK, suggestions)
+		return []map[string]string{}, err
 	}
+	defer rows.Close()
 
+	var id, weight string
+	suggestions := make([]map[string]string, 0)
+	for rows.Next() {
+		rows.Scan(&id, &weight)
+		suggestions = append(suggestions, map[string]string{"id": id, "weight": weight})
+	}
+	return suggestions, nil
 }

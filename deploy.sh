@@ -34,7 +34,7 @@ go install
 echo -e "Go install done.\n"
 
 echo "Running process.."
-$EXECUTABLE &
+nohup $GOPATH/bin/$EXECUTABLE > $GOPATH/log/socialradar-api/development.log &
 echo -e "Process started.\n"
 
 API_ID=$!
