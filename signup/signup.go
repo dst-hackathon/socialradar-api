@@ -71,7 +71,11 @@ func signup(w http.ResponseWriter, req *http.Request) {
 		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	} else {
 		err = postAvatar(req)
-		render.JSON(w, http.StatusOK, map[string]string{"success": ""})
+		if err != nil {
+			render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		} else {
+			render.JSON(w, http.StatusOK, map[string]string{"success": ""})
+		}
 	}
 	
 }
