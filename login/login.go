@@ -12,9 +12,9 @@ import (
 )
 
 type loginInfo struct {
+	Email string
 	Id string
 	Password string
-	Uid string
 }
 
 var signKey interface{} = []byte{1,1,1,1,1,1,1}
@@ -28,24 +28,14 @@ func loginHandler(w http.ResponseWriter, req *http.Request) {
 	db := context.Get(req, "db").(*sql.DB)
 
     inputInfo := parseRequestBody(req)
-	userInfo, err := getUser(db, inputInfo.Uid)
+	userInfo, err := getUser(db, inputInfo.Email)
 	if err != nil {
 		render.JSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return;
 	}
 
-	//log.Printf("input uid: " + inputInfo.Uid)
-	//log.Printf("input pass: " + inputInfo.Password + ", get pass: " + userInfo.Password)
-
 	response := validateUser(inputInfo, userInfo)
 	render.JSON(w, http.StatusOK, response)
-	
-	/*token, err := decodeToken(response["token"])
-	if err == nil {
-		log.Printf("decode token.Claims[id] = " + token.Claims["id"].(string))
-	} else {
-		log.Print("Invalid token")
-	}*/
 }
 
 func parseRequestBody(req *http.Request) loginInfo {
@@ -55,7 +45,7 @@ func parseRequestBody(req *http.Request) loginInfo {
 	return info
 }
 
-func getUser(db *sql.DB, userId string) (loginInfo, error) {
+func getUser(db *sql.DB, email string) (loginInfo, error) {
 	var userInfo loginInfo
 
 	tx, err := db.Begin()
@@ -63,7 +53,7 @@ func getUser(db *sql.DB, userId string) (loginInfo, error) {
 		return userInfo, err
 	}
 
-	rows, err := tx.Query("SELECT id, encrypted_password, uid FROM users where uid = $1", userId)
+	rows, err := tx.Query("SELECT email, id, encrypted_password FROM users where email = $1", email)
 	if err != nil {
 		tx.Rollback()
 		return userInfo, err
@@ -71,13 +61,13 @@ func getUser(db *sql.DB, userId string) (loginInfo, error) {
 
 	defer rows.Close()
 		
-	var id, encrypted_password, uid string
+	var res_email, id, encrypted_password string
 	rows.Next()
-	rows.Scan(&id, &encrypted_password, &uid)
+	rows.Scan(&res_email, &id, &encrypted_password)
 
+	userInfo.Email = res_email
 	userInfo.Id = id
 	userInfo.Password = encrypted_password
-	userInfo.Uid = uid
 
 	return userInfo, nil
 }
@@ -90,14 +80,12 @@ func validateUser(inputInfo loginInfo, actualInfo loginInfo) map[string]string {
 	if err != nil {
 		return map[string]string{"error": err.Error()}
 	}
-	return map[string]string{"success":"success", "token":token}
+	return map[string]string{"success":"success", "token":token, "id":actualInfo.Id}
 }
 
 func createToken(actualInfo loginInfo) (string, error) {
     token := jwt.New(jwt.GetSigningMethod("HS256"))
     token.Claims["id"] = actualInfo.Id
-
-	//log.Printf("token.Claims[id] = " + token.Claims["id"].(string))
 	return token.SignedString(signKey)
 }
 
@@ -109,16 +97,4 @@ func decodeToken(tokenString string) (*jwt.Token, error) {
 		return token, nil
     }
 	return nil, err
-}
-
-func addUserHandler(w http.ResponseWriter, req *http.Request) {
-	render := context.Get(req, "render").(*render.Render)
-	db := context.Get(req, "db").(*sql.DB)
-
-	_, err := db.Query("INSERT INTO users(encrypted_password,email,uid) values ('mypass','pongsanti.tanvejsilp@gmail.com','myid')")
-	if err != nil {
-		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
-	} else {
-		render.JSON(w, http.StatusOK, map[string]string{"success": ""})
-	}
 }

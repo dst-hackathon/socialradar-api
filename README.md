@@ -173,7 +173,7 @@ POST /login
 Request: 
 ```javascript
 {
-  "uid": "my_user_id",
+  "email": "my_email@gmail.com",
   "password": "my_password"
 }
 ```
@@ -181,6 +181,7 @@ Request:
 Response:
 ```javascript
 {
+  "id": "1",
   "success": "success",
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IiJ9.hdZsKHrlV9xEcv7KtRjGKLxlGC6QqfBctsaSEMqXL6k"
 }
