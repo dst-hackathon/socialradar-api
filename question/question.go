@@ -46,7 +46,7 @@ func listQuestionsId(w http.ResponseWriter, req *http.Request) {
 	db := context.Get(req, "db").(*sql.DB)
 	id := mux.Vars(req)["id"]
 
-	rows, err := db.Query("SELECT c.id, c.text, c.display_order, o.id, o.text, o.display_order FROM categories c LEFT JOIN options o ON c.id = o.category_id WHERE c.question_id = " + id + "ORDER BY c.display_order, o.display_order")
+	rows, err := db.Query("SELECT c.id, c.text, c.display_order, o.id, o.text, o.display_order FROM categories c LEFT JOIN options o ON c.id = o.category_id WHERE c.question_id = $1 ORDER BY c.display_order, o.display_order", id)
 	if err != nil {
 		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	} else {
