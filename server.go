@@ -19,8 +19,6 @@ import (
 	"net/http"
 	"strings"
 )
-var config configuration.Configuration = configuration.ReadFile()
-
 
 var config configuration.Configuration = configuration.ReadFile()
 var signKey interface{} = []byte{1, 1, 1, 1, 1, 1, 1}
@@ -89,7 +87,7 @@ func SecurityInitializer(rw http.ResponseWriter, r *http.Request, next http.Hand
 	log.Printf("Token provide:" + tokenString)
 	if tokenString != "" {
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			var signKey []byte = []byte(config.ApiSignKey);
+			var signKey []byte = []byte(config.ApiSignKey)
 			return signKey, nil
 		})
 		if err == nil && token.Valid {
