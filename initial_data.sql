@@ -1,7 +1,7 @@
 INSERT INTO questions(text, tag, display_order) values ('What are your favorite menus?', 'food', 1);		-- 1
 INSERT INTO questions(text, tag, display_order) values ('What sports do you play?', 'sport', 2);			-- 2
 INSERT INTO questions(text, tag, display_order) values ('What are your favorite movies?', 'movie', 3);		-- 3
-INSERT INTO questions(text, tag, display_order) values ('What do musid genres belong to you?', 'music', 4); -- 4
+INSERT INTO questions(text, tag, display_order) values ('What do music genres belong to you?', 'music', 4); -- 4
 INSERT INTO questions(text, tag, display_order) values ('What are your favorite books?', 'book', 5);		-- 5
 
 INSERT INTO categories (text, question_id, display_order) values ('Thai', 1, 1);		-- 1
