@@ -172,7 +172,7 @@ POST /signup
 ---------------------
 Request:
 Multipart Form with folowing form data
-file: [avartar file]
+file: the avartar file
 email: "user@email.com"
 password: "23x03dkc$"
 
