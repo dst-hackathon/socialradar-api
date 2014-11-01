@@ -7,6 +7,7 @@ import (
 	"github.com/dst-hackathon/socialradar-api/user"
 	"github.com/dst-hackathon/socialradar-api/configuration"
 	"github.com/dst-hackathon/socialradar-api/login"
+	"github.com/dst-hackathon/socialradar-api/signup"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
@@ -24,6 +25,7 @@ func main() {
 	question.Init(router)
 	user.Init(router)
 	login.Init(router)
+	signup.Init(router)
 
 	n := negroni.Classic()
 	n.Use(negroni.HandlerFunc(RenderIntializer))

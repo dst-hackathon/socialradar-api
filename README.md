@@ -135,7 +135,7 @@ POST /users/{id}/avatar
 -----------------------
 Request:
 Multipart form
-file : <file>
+form data key name = file
 
 Response:
 ```javascript
@@ -149,4 +149,19 @@ GET /users/{id}/avatar
 ---------------------
 Response:
 Raw image
+
+POST /signup
+---------------------
+Request:
+```javascript
+{
+  "email": "test@email.com",
+  "password": "kieCkd9$"
+}
+```
+
+Response:
+{
+    "success": ""
+}
 
