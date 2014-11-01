@@ -149,8 +149,8 @@ Response:
 }
 ```
 
-POST /users/{id}/avatar
------------------------
+POST /users/{id}/avatar (won't use, merged with signup)
+-------------------------------------------------------
 Request:
 Multipart form
 form data key name = file
