@@ -145,7 +145,7 @@ Response:
 }
 ```
 
-GET /users{id}/avatar
+GET /users/{id}/avatar
 ---------------------
 Response:
 Raw image
