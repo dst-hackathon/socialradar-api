@@ -58,7 +58,7 @@ func saveUserAnswer(w http.ResponseWriter, req *http.Request) {
 	if err == nil {
 		tx, err := db.Begin()
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 			render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
 		}
@@ -68,7 +68,7 @@ func saveUserAnswer(w http.ResponseWriter, req *http.Request) {
 				_, err := tx.Exec("DELETE FROM users_categories WHERE category_id = $1 AND user_id = $2", cid, userId)
 
 				if err != nil {
-					log.Fatal(err)
+					log.Println(err)
 					tx.Rollback()
 					render.JSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 					return
@@ -82,7 +82,7 @@ func saveUserAnswer(w http.ResponseWriter, req *http.Request) {
 					)`, userId, cid)
 
 				if err != nil {
-					log.Fatal(err)
+					log.Println(err)
 					tx.Rollback()
 					render.JSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 					return
@@ -91,7 +91,7 @@ func saveUserAnswer(w http.ResponseWriter, req *http.Request) {
 				_, err = tx.Exec("INSERT INTO users_categories(user_id, category_id) VALUES ($1, $2)", userId, cid)
 
 				if err != nil {
-					log.Fatal(err)
+					log.Println(err)
 					tx.Rollback()
 					render.JSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 					return
@@ -101,7 +101,7 @@ func saveUserAnswer(w http.ResponseWriter, req *http.Request) {
 					_, err := tx.Exec("INSERT INTO users_options(user_id, option_id) VALUES ($1, $2)", userId, oid)
 
 					if err != nil {
-						log.Fatal(err)
+						log.Println(err)
 						tx.Rollback()
 						render.JSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 						return
@@ -142,7 +142,7 @@ func getUserAnswer(w http.ResponseWriter, req *http.Request) {
 		`, userId)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	} else {
 		defer rows.Close()
