@@ -8,7 +8,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"encoding/json"
-	//"log"
 )
 
 type loginInfo struct {
@@ -28,7 +27,12 @@ func loginHandler(w http.ResponseWriter, req *http.Request) {
 	db := context.Get(req, "db").(*sql.DB)
 
     inputInfo := parseRequestBody(req)
+	if inputInfo.Email == "" || inputInfo.Password == "" {
+		render.JSON(w, http.StatusBadRequest, map[string]string{"error": "Please enter email and password"})
+		return;
+	}
 	userInfo, err := getUser(db, inputInfo.Email)
+
 	if err != nil {
 		render.JSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		return;
