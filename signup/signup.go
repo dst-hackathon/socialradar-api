@@ -35,6 +35,11 @@ func signup(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		render.JSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 	} else {
+		if len(signup.Email) == 0 || len(signup.Password) == 0 {
+			render.JSON(w, http.StatusBadRequest, map[string]string{"error": "Email/Password cannot be null."})
+			return
+		}
+		
 		rows, err := db.Query("SELECT 1 FROM users WHERE email = $1", signup.Email)
 		if err != nil {
 			render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
