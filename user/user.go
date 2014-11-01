@@ -12,9 +12,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
-	"sort"
 )
 
 func Init(router *mux.Router) {
@@ -56,7 +56,30 @@ func saveUserAnswer(w http.ResponseWriter, req *http.Request) {
 
 		for _, qvalue := range data {
 			for cid, cvalue := range qvalue {
-				_, err := tx.Exec("INSERT INTO users_categories(user_id, category_id) VALUES ($1, $2)", userId, cid)
+				_, err := tx.Exec("DELETE FROM users_categories WHERE category_id = $1 AND user_id = $2", cid, userId)
+
+				if err != nil {
+					log.Fatal(err)
+					tx.Rollback()
+					render.JSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+					return
+				}
+
+				_, err = tx.Exec(`
+					DELETE FROM users_options WHERE user_id = $1 AND option_id IN (
+						SELECT o.id FROM options o
+						JOIN categories c ON o.category_id = c.id
+						WHERE c.id = $2
+					)`, userId, cid)
+
+				if err != nil {
+					log.Fatal(err)
+					tx.Rollback()
+					render.JSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+					return
+				}
+
+				_, err = tx.Exec("INSERT INTO users_categories(user_id, category_id) VALUES ($1, $2)", userId, cid)
 
 				if err != nil {
 					log.Fatal(err)
@@ -236,7 +259,7 @@ func suggestFriends(w http.ResponseWriter, req *http.Request) {
 	db := context.Get(req, "db").(*sql.DB)
 	render := context.Get(req, "render").(*render.Render)
 	var user_id string = mux.Vars(req)["id"]
-	
+
 	resultByOptions, err := calculateByUserOptions(db, user_id)
 	if err != nil {
 		render.JSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
@@ -252,21 +275,22 @@ func suggestFriends(w http.ResponseWriter, req *http.Request) {
 	mergeResult := groupResult(resultByOptions, resultByCategories)
 	response := make([]map[string]string, 0)
 	for _, f := range mergeResult {
-		response = append(response, map[string]string{"id":f.id, "weight":strconv.Itoa(f.weight), "email":f.email})
+		response = append(response, map[string]string{"id": f.id, "weight": strconv.Itoa(f.weight), "email": f.email})
 	}
-	
+
 	render.JSON(w, http.StatusOK, response)
 }
 
 type frientList []friend
 type friend struct {
-	id string
+	id     string
 	weight int
-	email string
+	email  string
 }
-func (s frientList) Len() int { return len(s) }
+
+func (s frientList) Len() int      { return len(s) }
 func (s frientList) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-func (s frientList) Less(i, j int) bool { 
+func (s frientList) Less(i, j int) bool {
 	return s[i].weight < s[j].weight
 }
 
