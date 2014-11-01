@@ -1,27 +1,84 @@
-INSERT INTO questions(text, tag, display_order) values ('What are your favorite menus?', 'food', 1);
-INSERT INTO questions(text, tag, display_order) values ('What sports do you play?', 'sport', 2);
+INSERT INTO questions(text, tag, display_order) values ('What are your favorite menus?', 'food', 1);		-- 1
+INSERT INTO questions(text, tag, display_order) values ('What sports do you play?', 'sport', 2);			-- 2
+INSERT INTO questions(text, tag, display_order) values ('What are your favorite movies?', 'movie', 3);		-- 3
+INSERT INTO questions(text, tag, display_order) values ('What do musid genres belong to you?', 'music', 4); -- 4
+INSERT INTO questions(text, tag, display_order) values ('What are your favorite books?', 'book', 5);		-- 5
 
-INSERT INTO categories (text, question_id, display_order) values ('Thai', 1, 1);
-INSERT INTO categories (text, question_id, display_order) values ('Japanese', 1, 2);
-INSERT INTO categories (text, question_id, display_order) values ('Chinese', 1, 3);
-INSERT INTO categories (text, question_id, display_order) values ('Western', 1, 4);
+INSERT INTO categories (text, question_id, display_order) values ('Thai', 1, 1);		-- 1
+INSERT INTO categories (text, question_id, display_order) values ('Japanese', 1, 2);	-- 2
+INSERT INTO categories (text, question_id, display_order) values ('Chinese', 1, 3);	 	-- 3
+INSERT INTO categories (text, question_id, display_order) values ('Western', 1, 4);		-- 4
 
-INSERT INTO categories (text, question_id, display_order) values ('Team', 2, 1);
-INSERT INTO categories (text, question_id, display_order) values ('Individual', 2, 2);
+INSERT INTO categories (text, question_id, display_order) values ('Team', 2, 1);		-- 5
+INSERT INTO categories (text, question_id, display_order) values ('Individual', 2, 2); 	-- 6
 
-INSERT INTO options (text, category_id, display_order) values ('Pad Thai', 1, 1);
-INSERT INTO options (text, category_id, display_order) values ('Tom Yum Kung', 1, 2);
-INSERT INTO options (text, category_id, display_order) values ('Kao Pad', 1, 3);
-INSERT INTO options (text, category_id, display_order) values ('Sushi', 2, 1);
-INSERT INTO options (text, category_id, display_order) values ('Ramen', 2, 1);
-INSERT INTO options (text, category_id, display_order) values ('Sashimi', 2, 1);
-INSERT INTO options (text, category_id, display_order) values ('T-bone steak', 4, 1);
-INSERT INTO options (text, category_id, display_order) values ('Fish & chip', 4, 2);
-INSERT INTO options (text, category_id, display_order) values ('Irish stew', 4, 3);
+INSERT INTO categories (text, question_id, display_order) values ('Scifi/Fantasy', 3, 1); 	-- 7
+INSERT INTO categories (text, question_id, display_order) values ('Action', 3, 2); 			-- 8
+INSERT INTO categories (text, question_id, display_order) values ('Romance', 3, 3); 		-- 9
+INSERT INTO categories (text, question_id, display_order) values ('Horror', 3, 4); 			-- 10
 
-INSERT INTO options (text, category_id, display_order) values ('Football', 5, 1);
-INSERT INTO options (text, category_id, display_order) values ('Basketball', 5, 2);
-INSERT INTO options (text, category_id, display_order) values ('Bowling', 5, 3);
+INSERT INTO categories (text, question_id, display_order) values ('Pop', 4, 1); 			-- 11
+INSERT INTO categories (text, question_id, display_order) values ('Rock', 4, 2); 			-- 12
+INSERT INTO categories (text, question_id, display_order) values ('Country', 4, 3); 		-- 13
+INSERT INTO categories (text, question_id, display_order) values ('Rap', 4, 4); 			-- 14
+
+INSERT INTO categories (text, question_id, display_order) values ('Biography', 5, 1); 		-- 15
+INSERT INTO categories (text, question_id, display_order) values ('Romance', 5, 2); 		-- 16
+INSERT INTO categories (text, question_id, display_order) values ('Fantasy', 5, 3); 		-- 17
+INSERT INTO categories (text, question_id, display_order) values ('Fiction', 5, 4); 		-- 18
+
+INSERT INTO options (text, category_id, display_order) values ('Pad Thai', 1, 1);		-- 1
+INSERT INTO options (text, category_id, display_order) values ('Tom Yum Kung', 1, 2);	-- 2
+INSERT INTO options (text, category_id, display_order) values ('Kao Pad', 1, 3);		-- 3
+INSERT INTO options (text, category_id, display_order) values ('Sushi', 2, 1);			-- 4
+INSERT INTO options (text, category_id, display_order) values ('Ramen', 2, 1);			-- 5
+INSERT INTO options (text, category_id, display_order) values ('Sashimi', 2, 1);		-- 6
+INSERT INTO options (text, category_id, display_order) values ('T-bone steak', 4, 1);	-- 7
+INSERT INTO options (text, category_id, display_order) values ('Fish & chip', 4, 2);	-- 8
+INSERT INTO options (text, category_id, display_order) values ('Irish stew', 4, 3);	 	-- 9
+
+INSERT INTO options (text, category_id, display_order) values ('Football', 5, 1);		-- 10
+INSERT INTO options (text, category_id, display_order) values ('Basketball', 5, 2);		-- 11
+INSERT INTO options (text, category_id, display_order) values ('Bowling', 5, 3);		-- 12
+
+INSERT INTO options (text, category_id, display_order) values ('Star wars', 7, 1);				-- 13
+INSERT INTO options (text, category_id, display_order) values ('Harry Potter', 7, 2);			-- 14
+INSERT INTO options (text, category_id, display_order) values ('The lord of the ring', 7, 3);	-- 15
+INSERT INTO options (text, category_id, display_order) values ('Fast and Furious', 8, 1);		-- 16
+INSERT INTO options (text, category_id, display_order) values ('Fury', 8, 2);					-- 17
+INSERT INTO options (text, category_id, display_order) values ('John Wick', 8, 3);				-- 18
+INSERT INTO options (text, category_id, display_order) values ('Begin again', 9, 1);			-- 19
+INSERT INTO options (text, category_id, display_order) values ('Blended', 9, 2);				-- 20
+INSERT INTO options (text, category_id, display_order) values ('American Pie', 9, 3);			-- 21
+INSERT INTO options (text, category_id, display_order) values ('Seed of Chucky', 10, 1);		-- 22
+INSERT INTO options (text, category_id, display_order) values ('Gremlins', 10, 2);				-- 23
+INSERT INTO options (text, category_id, display_order) values ('Evil dead', 10, 3);				-- 24
+
+INSERT INTO options (text, category_id, display_order) values ('Madonna', 11, 1);				-- 25
+INSERT INTO options (text, category_id, display_order) values ('Britney Spears', 11, 2);		-- 26
+INSERT INTO options (text, category_id, display_order) values ('Michael Jackson', 11, 3);		-- 27
+INSERT INTO options (text, category_id, display_order) values ('Metallica', 12, 1);					-- 28
+INSERT INTO options (text, category_id, display_order) values ('Coldplay', 12, 2);					-- 29
+INSERT INTO options (text, category_id, display_order) values ('Red hot chilli peppers', 12, 3);	-- 30
+INSERT INTO options (text, category_id, display_order) values ('Taylor Swift', 13, 1);			-- 31
+INSERT INTO options (text, category_id, display_order) values ('Adam Ryan', 13, 2);				-- 32
+INSERT INTO options (text, category_id, display_order) values ('Carrie Underwood', 13, 3);		-- 33
+INSERT INTO options (text, category_id, display_order) values ('Pitbull', 14, 1);				-- 34
+INSERT INTO options (text, category_id, display_order) values ('Nicki Minaj', 14, 2);			-- 35
+INSERT INTO options (text, category_id, display_order) values ('Eminem', 14, 3);				-- 36
+
+INSERT INTO options (text, category_id, display_order) values ('John Lahr''s ''compulsively readable'' biography', 15, 1);				-- 37
+INSERT INTO options (text, category_id, display_order) values ('The kind of primary source that historians drool over', 15, 2);		-- 
+INSERT INTO options (text, category_id, display_order) values ('Taking Command', 15, 3);											-- 
+INSERT INTO options (text, category_id, display_order) values ('Dear Thief', 16, 1);												-- 40
+INSERT INTO options (text, category_id, display_order) values ('Curses and Smoke', 16, 2);											-- 
+INSERT INTO options (text, category_id, display_order) values ('Year of the Rat', 16, 3);											-- 
+INSERT INTO options (text, category_id, display_order) values ('Tribute', 17, 1);													-- 43
+INSERT INTO options (text, category_id, display_order) values ('Birth of a new world', 17, 2);										-- 
+INSERT INTO options (text, category_id, display_order) values ('We could be heroes', 17, 3);										-- 
+INSERT INTO options (text, category_id, display_order) values ('Prince Lestat', 18, 1);												-- 46
+INSERT INTO options (text, category_id, display_order) values ('Amnesia', 18, 2);													-- 
+INSERT INTO options (text, category_id, display_order) values ('Horror stories edited', 18, 3);										-- 
 
 INSERT INTO users(email) values ('pongsanti.tanvejsilp@gmail.com');
 INSERT INTO users(email) values ('prawit@gmail.com');
