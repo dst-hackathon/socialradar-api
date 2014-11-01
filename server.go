@@ -2,22 +2,23 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/codegangsta/negroni"
-	"github.com/dst-hackathon/socialradar-api/question"
-	"github.com/dst-hackathon/socialradar-api/user"
 	"github.com/dst-hackathon/socialradar-api/configuration"
 	"github.com/dst-hackathon/socialradar-api/login"
+	"github.com/dst-hackathon/socialradar-api/question"
 	"github.com/dst-hackathon/socialradar-api/signup"
+	"github.com/dst-hackathon/socialradar-api/user"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"github.com/rs/cors"
 	"gopkg.in/unrolled/render.v1"
 	"log"
 	"net/http"
-	"fmt"
 )
 
-var config configuration.Configuration = configuration.ReadFile();
+var config configuration.Configuration = configuration.ReadFile()
 
 func main() {
 	router := mux.NewRouter().StrictSlash(false)
@@ -27,10 +28,15 @@ func main() {
 	login.Init(router)
 	signup.Init(router)
 
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+	})
+
 	n := negroni.Classic()
 	n.Use(negroni.HandlerFunc(RenderIntializer))
 	n.Use(negroni.HandlerFunc(ConfigInitializer))
 	n.Use(negroni.HandlerFunc(DbInitializer))
+	n.Use(c)
 
 	n.UseHandler(router)
 	n.Run(":3000")
